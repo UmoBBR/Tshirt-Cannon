@@ -1,0 +1,122 @@
+XBox Controls for "Sasha": a 2013 FIRST Robotics competition robot built by team 4564.
+
+(Robot is initially inactive.  Press start to enable it.)
+Drive: Left Joystick
+Winch: Dpad Up and Down
+Thrower Speed: Hold Left Trigger until motor revs to desired speed (50%, 65%, 80%, 100%).  Press A to lock.
+	Thrower speed can be adjusted only if drive control is set to full speed
+Launch Frisbee: Right Trigger
+Clear Jams: B + Right Trigger
+Recall thrower speed: Press A (default, if no previous setting listed, is 50%)
+Compressor: Press Y
+T-Shirt Cannons: Left and Right Bumpers
+Disable Driving: Back
+Slow Driving Mode: Back + B
+Normal Driving Mode: Back + X
+
+
+Sasha's Wi-FI
+IP address for Sasha is 192.168.10.1
+Set client PC to static IP 192.168.10.100, for instance
+
+
+To run Sahsa code
+Login as pi with password raspberry
+cd Sasha
+sudo python sasha.py
+
+
+
+If xbox controller keeps giving error, try this:
+sudo xboxdrv --detach-kernel-driver
+joystick should connect.  Move a stick to see if it is working.
+Ctrl-c to exit back to Linux
+Run Sasha code 
+
+"""                
+            ### Raise and Lower Frisbee Thrower ###
+            if j.dpadUp() and upperLimit.open():
+                winch.rev()
+            elif j.dpadDown() and lowerLimit.open():
+                winch.fwd()
+            else:
+                winch.stop()
+                
+            ### Speed Of Thrower Motor ###
+            if throwerEnabled == False and speedToggle == 2:
+                if j.leftTrigger() >= .20 and j.leftTrigger() < .40:
+                    motors.setTarget(THROWER, int(THROWER_STOP + (THROWER_RANGE * .50)))
+                    currentThrower = int(THROWER_STOP + (THROWER_RANGE * .50))
+                    #print "Thrower: 50%"
+                elif j.leftTrigger() >= .40 and j.leftTrigger() < .60:
+                    motors.setTarget(THROWER, int(THROWER_STOP + (THROWER_RANGE * .65)))
+                    currentThrower = int(THROWER_STOP + (THROWER_RANGE * .65))
+                    #print "Thrower: 65%"
+                elif j.leftTrigger() >= .60 and j.leftTrigger() < .80:
+                    motors.setTarget(THROWER, int(THROWER_STOP + (THROWER_RANGE * .80)))
+                    currentThrower = int(THROWER_STOP + (THROWER_RANGE * .80))
+                    #print "Thrower: 80%"
+                elif j.leftTrigger() >= .80:
+                    motors.setTarget(THROWER, THROWER_MAX)
+                    currentThrower = THROWER_MAX
+                    #print "Thrower: MAX POWER!!!"
+                else:
+                    motors.setTarget(THROWER, THROWER_STOP)
+
+            ### Lock and Recall Thrower Speed ###    
+            if j.A():
+                if pressedA == False:
+                    if throwerEnabled == False:
+                        motors.setTarget(THROWER, currentThrower)
+                        throwerEnabled = True
+                        #print "throwerEnabled = True"
+                    else:
+                        motors.setTarget(THROWER, THROWER_STOP)
+                        throwerEnabled = False
+                        #print "throwerEnabled = False"
+                    pressedA = True
+            else:
+                pressedA = False
+                
+            ### Launch frisbee ###
+            if j.rightTrigger() > 0:
+                if j.B():
+                    motors.setTarget(CAM, CAM_REV)
+                else:
+                    if throwerEnabled:
+                        motors.setTarget(CAM, CAM_FWD)
+            elif camLimit.closed():
+                motors.setTarget(CAM, CAM_STOP)
+
+            ### Compressor ###
+            if j.Y():
+                if pressedY == False:
+                    if compressorEnabled == False:
+                        compressorEnabled = True
+                        #print "Compressor Enabled"
+                    else:
+                        compressorEnabled = False
+                        #print "Compressor Disabled"
+                    pressedY = True
+            else:
+                pressedY = False
+                
+            if compressorEnabled == False or pressureSw.open():
+                compressor.stop()
+                compressorEnabled = False
+                #print "Compressor Stopped"
+            else:
+                compressor.fwd()
+                #print "Compressor Started"
+                        
+            ### T-Shirt Cannons ###
+            if j.rightBumper():
+                 cannonr.fwd()
+            else:
+                cannonr.stop()
+
+            if j.leftBumper():
+                cannonl.fwd()
+            else:
+                cannonl.stop()
+"""
